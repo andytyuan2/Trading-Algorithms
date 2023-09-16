@@ -7,5 +7,5 @@ Topics that I will use will likely be:
 
 ## Steps that I am currently planning now:
 1. obtain a historical price list of a specific sector
-      might need to make a master list in another file
+> might need to make a master list in another file
    
