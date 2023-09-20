@@ -17,7 +17,9 @@ Topics that I will use will likely be:
 6. take the result that has the lowest standard deviation, which shows that the pair of stocks tend to trade at a similar level
 7. for the two stocks, execute a geometric brownian motion simulation independently
 8. select portions of the stock price where the slope of the line of best fit at that point diverge from the comparison stock
-9. to profit, you would short the one with positive slope and go long on the one with a negative slope, the divergence has to be large for there to be a substantial profit
+9. the way that i believe i should select which places is calculating s historical average price for each stock, then placing a conditional to invest if one moves +2 sd of historical price average + slope(time) and one moves -2 sd from their respective 'average' price. the historical average will have to be a line with a slope of expected return and y intercept of historical average price. the movement criteria will be based off this line
+10. for this to work, the expected returns of both stocks should also be very similar, something i already check for in thr previous steps. 
+11. to profit, you would short the one with positive slope and go long on the one with a negative slope, the divergence has to be large for there to be a substantial profit
 
 
 ## pairs trading concept
