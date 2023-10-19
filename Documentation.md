@@ -11,8 +11,8 @@ Topics that I will use will likely be:
 ## Steps that I am currently planning now:
 1. obtain a historical year daily price list of a specific sector
    > might need to make a master list in another file
-2. could either choose your own two stocks (Skip to step 7) or do a computationally heavy process as follows
-4. for each stock, create another list that is the percentage change between daily prices
+2. get a daily price list for desired interval
+3. for each stock, create another list that is the percentage change between daily prices
 5. then, compare each stock by calculating a quotient of the two percentage changes per day
 6. take the result that has the lowest standard deviation, which shows that the pair of stocks tend to trade at a similar level
 7. for the two stocks, execute a geometric brownian motion simulation independently
