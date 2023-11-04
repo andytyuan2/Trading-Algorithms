@@ -6,10 +6,9 @@ import math
 import statistics as stats
 import random
 import scipy as sp
-
+gbm_length = 100
 
 # Step 1: get a list of the stocks in a certain sector
-
 
 
 class stock:
@@ -18,7 +17,7 @@ class stock:
 # Step 2: get a daily price list for desired interval       
     def stocks(self):
         stock_of_choice = yf.Ticker(self.ticker)
-        historical_price_stock = list(round(stock_of_choice.history(period="1mo", interval="1d")['Close'], 3))
+        historical_price_stock = list(round(stock_of_choice.history(period="5d", interval="30m")['Close'], 3))
         return historical_price_stock
     
 # Step 3: list of percentage change between daily prices
@@ -33,13 +32,13 @@ class stock:
         return price_changes_list
     
     def average_price(self):
-        return np.average(self.stocks())
+        return float(np.average(self.stocks()))
     
     def price_std(self):
-        return np.std(self.stocks())
+        return float(np.std(self.stocks()))
     
     def average_change(self):
-        return np.average(self.price_change())
+        return float(np.average(self.price_change()))
     
     def price_average_plot(self):
         price_plotted = []
@@ -51,7 +50,7 @@ class stock:
         price_list = [(self.stocks()[-1])]
         stock_vol = float(self.price_std() / self.average_price())
         expected_return = yf.Ticker(self.ticker).info['52WeekChange']
-        for num in range(0,len(self.stocks())):
+        for num in range(0,gbm_length):
             rng = np.random.default_rng().normal()
             change = expected_return*price_list[num]*1/len(self.stocks()) + stock_vol*math.sqrt(1/len(self.stocks()))*price_list[num]*rng
             new_price = price_list[num] + change
@@ -71,21 +70,21 @@ class stock:
     
     def standarddev(self):
         stdev = np.std(self.line_equation)
-        return stdev
-    
-
-for i in range(0, len(stock('KO'))):
-    if stock('KO').geometric_brownian()[i] >= stock('KO').line_equation()[i] + 2*stock('KO').standarddev() and stock('PEP').geometric_brownian()[i] <= stock('PEP').line_equation()[i] - 2*stock('PEP'):
-        print(f'pair trade opportunity at t = {i}!')
-    elif stock('PEP').geometric_brownian()[i] >= stock('PEP').line_equation()[i] + 2*stock('PEP').standarddev() and stock('KO').geometric_brownian()[i] <= stock('KO').line_equation()[i] - 2*stock('KO'):
-        print(f'pair trade opportunity at t = {i}!')
-    else: 
-        pass
-            
+        return stdev            
         
     
 stock1 = stock("KO")
 stock2 = stock("PEP")
+
+pair_trade_opps = []
+for i in range(0, gbm_length):
+    if (stock1.geometric_brownian()[i] >= (stock1.line_equation()[i] + 2*stock1.standarddev())) and (stock2.geometric_brownian()[i] <= (stock2.line_equation()[i] - 2*stock2.standarddev())):
+        pair_trade_opps.append()
+        print(f'pair trade opportunity at t = {i}!')
+    elif (stock2.geometric_brownian()[i] >= (stock2.line_equation()[i] + 2*stock2.standarddev())) and (stock1.geometric_brownian()[i] <= (stock1.line_equation()[i] - 2*stock1.standarddev())):
+        print(f'pair trade opportunity at t = {i}!')
+    else: 
+        print(f'Not a pair trade opportunity')
 
 ##### Step 4: compare stocks by calculating correlation of the price lists
 
@@ -100,10 +99,5 @@ stock2 = stock("PEP")
 # for i in range(0, len(stock1_changes)):
 #     quotient = float(stock1_changes[i] / stock2_changes[i])
 #     two_stocks_quotient.append(quotient)
-
-
-## Step 6: plotting the gbm line
-
-
 
 
