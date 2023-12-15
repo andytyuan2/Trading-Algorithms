@@ -5,16 +5,22 @@ import matplotlib.pyplot as plt
 import math
 import statistics as stats
 import random
+import scipy as sp
+gbm_length = 100
+# Step 1: get a list of the stocks in a certain sector
+
 
 class stock:
     def __init__(self, ticker):
         self.ticker = ticker
         
+# Step 2: get a daily price list for desired interval       
     def stocks(self):
         stock_of_choice = yf.Ticker(self.ticker)
-        historical_price_stock = list(round(stock_of_choice.history(start="2022-06-06", end="2022-06-14", interval="1d")['Close'], 3))
+        historical_price_stock = list(round(stock_of_choice.history(period="5d", interval="30m")['Close'], 3))
         return historical_price_stock
     
+# Step 3: list of percentage change between daily prices
     def price_change(self):
         price_changes_list = []
         for x in range(0, len(self.stocks())-1):
@@ -25,20 +31,92 @@ class stock:
                 price_changes_list.append(percent_change)
         return price_changes_list
     
+# Other components needed to calculate the mean reversion strategy
     def average_price(self):
-        return np.average(self.stocks())
+        return float(np.average(self.stocks()))
+    
+    def price_std(self):
+        return float(np.std(self.stocks()))
     
     def average_change(self):
-        return np.average(self.price_change())
-    
-    def line_equation(self):
-        return f'The equation of the line of best fit is: y = {self.average_change()}x + {self.average_price()}'
+        return float(np.average(self.price_change()))
     
     def price_average_plot(self):
         price_plotted = []
         for x in range(0, len(self.price_change())):
             price_plotted.append(self.average_price() + x*self.average_change())
         return price_plotted
+    
+    def time_list(self):
+        time_list = list(range(0,len(self.stocks())+1))
+        return time_list
+    
+    def line_equation(self):
+        line_list = [self.geometric_brownian()[0]]
+        for i in range(1,len(self.stocks())+1):
+            points = line_list[0] + i*(self.average_change())
+            line_list.append(points)
+        return line_list
+    
+    def standarddev(self):
+        stdev = np.std(self.line_equation)
+        return stdev    
+    
+# Geometric Brownian Motion to predict the stock price movements and look at the potential price movements
+    # This can also be omitted if you want to use the market's prices    
+    def geometric_brownian(self):
+        price_list = [(self.stocks()[-1])]
+        stock_vol = float(self.price_std() / self.average_price())
+        expected_return = yf.Ticker(self.ticker).info['52WeekChange']
+        for num in range(0,gbm_length):
+            rng = np.random.default_rng().normal()
+            change = expected_return*price_list[num]*1/len(self.stocks()) + stock_vol*math.sqrt(1/len(self.stocks()))*price_list[num]*rng
+            new_price = price_list[num] + change
+            price_list.append(new_price)
+        return price_list
+                         
+    
+stock1 = stock("NVDA")
+stock2 = stock("AAPL")
 
+moving_average = []
+for i in range(0, 5):
+    moving_average.append((stock1.geometric_brownian()[i+1] - stock1.geometric_brownian()[i])/stock1.geometric_brownian()[i])
+
+pair_trade_opps = []
+for i in range(0, gbm_length):
+    if i <= 5:
+        if (stock1.geometric_brownian()[i] >= (stock1.line_equation()[i] + 2*stock1.standarddev())) and (stock2.geometric_brownian()[i] <= (stock2.line_equation()[i] - 2*stock2.standarddev())):
+            pair_trade_opps.append(i)
+            print(f'pair trade opportunity at t = {i}!')
+        elif (stock2.geometric_brownian()[i] >= (stock2.line_equation()[i] + 2*stock2.standarddev())) and (stock1.geometric_brownian()[i] <= (stock1.line_equation()[i] - 2*stock1.standarddev())):
+            print(f'pair trade opportunity at t = {i}!')
+            pair_trade_opps.append(i)
+        else: 
+            print(f'Not a pair trade opportunity')
+    if i > 5:            
+        expected_return = np.average(moving_average)
+        if (stock1.geometric_brownian()[i] >= (stock1.line_equation()[i] + 2*stock1.standarddev())) and (stock2.geometric_brownian()[i] <= (stock2.line_equation()[i] - 2*stock2.standarddev())):
+            pair_trade_opps.append(i)
+            print(f'pair trade opportunity at t = {i}!')
+        elif (stock2.geometric_brownian()[i] >= (stock2.line_equation()[i] + 2*stock2.standarddev())) and (stock1.geometric_brownian()[i] <= (stock1.line_equation()[i] - 2*stock1.standarddev())):
+            print(f'pair trade opportunity at t = {i}!')
+            pair_trade_opps.append(i)
+        else: 
+            print(f'Not a pair trade opportunity')
+
+##### Step 4: compare stocks by calculating correlation of the price lists
+
+# correlation = sp.stats.pearsonr(stock1.price_change(), stock2.price_change())
+# print(correlation)
+
+
+
+# two_stocks_quotient = []
+# stock1_changes = stock1.price_change()
+# stock2_changes = stock2.price_change()
+# for i in range(0, len(stock1_changes)):
+#     quotient = float(stock1_changes[i] / stock2_changes[i])
+#     two_stocks_quotient.append(quotient)
 
 
